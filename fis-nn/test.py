@@ -22,30 +22,29 @@ def progress_bar(iteration, total, prefix='', suffix='', decimals=1, bar_length=
     if iteration == total:
         print()
 
-speed = ctrl.Antecedent(np.arange(0, 1.1, 0.1), 'speed')
-blocking_efficiency = ctrl.Antecedent(np.arange(0, 1.1, 0.1), 'blocking_efficiency')
-resource_usage = ctrl.Antecedent(np.arange(0, 1.1, 0.1), 'resource_usage')
-output_class = ctrl.Consequent(np.arange(0, 1.1, 0.1), 'output_class')
 # Создаем систему нечеткого вывода FIS типа Сугено (пример из предыдущего ответа)
 def create_fis_system():
         
     # Задаем нечеткие переменные для входов
+    speed = ctrl.Antecedent(np.arange(0, 1.1, 0.1), 'speed')
+    blocking_efficiency = ctrl.Antecedent(np.arange(0, 1.1, 0.1), 'blocking_efficiency')
+    resource_usage = ctrl.Antecedent(np.arange(0, 1.1, 0.1), 'resource_usage')
 
+    # Задаем нечеткую переменную для выхода (класс)
+    output_class = ctrl.Consequent(np.arange(0, 1.1, 0.1), 'output_class')
 
-# Задаем нечеткую переменную д
-# Определяем нечеткие множества для входов и выхода на основе статистики данных
-# (здесь нужно подставить реальные значения ваших данных)
-    speed['low'] = fuzz.trimf(speed.universe, [data['Speed'].min(), data['Speed'].min(), data['Speed'].mean()])
-    speed['medium'] = fuzz.trimf(speed.universe, [data['Speed'].mean(), data['Speed'].mean(), data['Speed'].max()])
-    speed['high'] = fuzz.trimf(speed.universe, [data['Speed'].mean(), data['Speed'].max(), data['Speed'].max()])
+    # Определяем нечеткие множества для входов и выхода
+    speed['low'] = fuzz.trimf(speed.universe, [0, 0, 0.5])
+    speed['medium'] = fuzz.trimf(speed.universe, [0, 0.5, 1])
+    speed['high'] = fuzz.trimf(speed.universe, [0.5, 1, 1])
 
-    blocking_efficiency['low'] = fuzz.trimf(blocking_efficiency.universe, [data['Blocking Efficiency'].min(), data['Blocking Efficiency'].min(), data['Blocking Efficiency'].mean()])
-    blocking_efficiency['medium'] = fuzz.trimf(blocking_efficiency.universe, [data['Blocking Efficiency'].mean(), data['Blocking Efficiency'].mean(), data['Blocking Efficiency'].max()])
-    blocking_efficiency['high'] = fuzz.trimf(blocking_efficiency.universe, [data['Blocking Efficiency'].mean(), data['Blocking Efficiency'].max(), data['Blocking Efficiency'].max()])
+    blocking_efficiency['low'] = fuzz.trimf(blocking_efficiency.universe, [0, 0, 0.5])
+    blocking_efficiency['medium'] = fuzz.trimf(blocking_efficiency.universe, [0, 0.5, 1])
+    blocking_efficiency['high'] = fuzz.trimf(blocking_efficiency.universe, [0.5, 1, 1])
 
-    resource_usage['low'] = fuzz.trimf(resource_usage.universe, [data['Resource Usage'].min(), data['Resource Usage'].min(), data['Resource Usage'].mean()])
-    resource_usage['medium'] = fuzz.trimf(resource_usage.universe, [data['Resource Usage'].mean(), data['Resource Usage'].mean(), data['Resource Usage'].max()])
-    resource_usage['high'] = fuzz.trimf(resource_usage.universe, [data['Resource Usage'].mean(), data['Resource Usage'].max(), data['Resource Usage'].max()])
+    resource_usage['low'] = fuzz.trimf(resource_usage.universe, [0, 0, 0.5])
+    resource_usage['medium'] = fuzz.trimf(resource_usage.universe, [0, 0.5, 1])
+    resource_usage['high'] = fuzz.trimf(resource_usage.universe, [0.5, 1, 1])
 
     output_class['good'] = fuzz.trimf(output_class.universe, [0, 0, 0.5])
     output_class['bad'] = fuzz.trimf(output_class.universe, [0.5, 1, 1])
@@ -54,7 +53,6 @@ def create_fis_system():
     rule1 = ctrl.Rule(speed['high'] & blocking_efficiency['high'] & resource_usage['low'], output_class['good'])
     rule2 = ctrl.Rule(speed['low'] & blocking_efficiency['low'] & resource_usage['high'], output_class['bad'])
     rule3 = ctrl.Rule(speed['medium'] | blocking_efficiency['medium'] | resource_usage['medium'], output_class['good'])
-
 
     # Создаем систему нечеткого вывода и добавляем правила
     fis = ctrl.ControlSystem([rule1, rule2, rule3])
@@ -89,11 +87,11 @@ for index, row in X_fis.iterrows():
     fis_outputs.append(fis_system.output['output_class'])
 
 
-max_iter=100000
+max_iter=500000
 # Создаем нейронную сеть для обработки вывода FIS
 X_train, X_test, y_train, y_test, fis_outputs_train, fis_outputs_test = train_test_split(X_fis, y_fis, fis_outputs, test_size=0.08, random_state=42)
 
-mlp = MLPClassifier(hidden_layer_sizes=(30,2), max_iter=max_iter, random_state=42)
+mlp = MLPClassifier(hidden_layer_sizes=(20,), max_iter=max_iter, random_state=42)
 mlp.fit(X_train, y_train)
 
 # Предсказание на тестовых данных
