@@ -60,7 +60,7 @@ model = Sequential()
 model.add(LSTM(50, activation='relu', input_shape=(seq_length, 6))) 
 model.add(Dense(1))
 model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
-model.fit(X_train, y_train, epochs=500, batch_size=16)
+model.fit(X_train, y_train, epochs=50, batch_size=16)
 
 predicted_prices = model.predict(X_test)
 predicted_prices = scaler_price.inverse_transform(predicted_prices)
